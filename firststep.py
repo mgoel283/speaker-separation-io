@@ -42,8 +42,8 @@ def main():
         #     output_frames.put(gaussianadd.add_gauss(frames.get(), CHUNK))
         for i in range(0, len(frames)):
             output_frames.append(gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.float32), CHUNK))
-        frames2_temp = ''.join(output_frames)
-        #Printing waveform
+        frames2_temp = ''.join(str(v) for v in output_frames)
+        #Printing waveform for testing
         fig = plt.figure()
         s = fig.add_subplot(211)
         amp = numpy.fromstring(frames_temp, numpy.float32)
