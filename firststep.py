@@ -4,15 +4,16 @@ import queue
 #import wave
 import numpy
 import matplotlib.pyplot as plt
+import gaussianadd
+
 
 CHUNK = 1024
 WIDTH = 2
 CHANNELS = 2
 RATE = 44100
 #RECORD_SECONDS = 1
-FORMAT = pyaudio.paInt16
+FORMAT = pyaudio.paFloat32
 WAVE_OUTPUT_FILENAME = "output.wav"
-
 
 
 def main():
@@ -34,14 +35,24 @@ def main():
             #frames.put(data)
             frames.append(data)
     except KeyboardInterrupt:
-        frames = b''.join(frames)
-        print('halted')
+        frames_temp = b''.join(frames)
+        # print('halted')
+        output_frames = []
+        # while not frames.empty():
+        #     output_frames.put(gaussianadd.add_gauss(frames.get(), CHUNK))
+        for i in range(0, len(frames)):
+            output_frames.append(gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.float32), CHUNK))
+        frames2_temp = ''.join(output_frames)
+        #Printing waveform
         fig = plt.figure()
-        s = fig.add_subplot(111)
-        amp = numpy.fromstring(frames, numpy.int16)
+        s = fig.add_subplot(211)
+        amp = numpy.fromstring(frames_temp, numpy.float32)
         s.plot(amp)
+        s2 = fig.add_subplot(212)
+        s2.plot(frames2_temp)
         plt.show()
-        #print(numpy.fromstring(frames.get(), numpy.dtype('Int16')))
+
+
         #WAV conversion code
         # stream.stop_stream()
         # stream.close()
@@ -57,4 +68,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
