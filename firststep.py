@@ -11,7 +11,6 @@ CHUNK = 1024
 WIDTH = 2
 CHANNELS = 2
 RATE = 44100
-#RECORD_SECONDS = 1
 FORMAT = pyaudio.paInt16
 WAVE_OUTPUT_FILENAME = "output.wav"
 
@@ -43,12 +42,10 @@ def main():
         for i in range(0, len(frames)):
             gauss_chunk = gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.int16), CHUNK)
             output_frames.append(gauss_chunk)
-        frames2_temp = b''.join(output_frames)
         #Printing waveform for testing
         fig = plt.figure()
         s = fig.add_subplot(211)
         amp = numpy.fromstring(frames_temp, numpy.int16) #ndarray
-        amp2 = numpy.fromstring(frames2_temp, numpy.int16)
         s.plot(amp)
         s2 = fig.add_subplot(212)
         s2.plot(output_frames)
@@ -69,8 +66,8 @@ def main():
         wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(p.get_sample_size(FORMAT))
-        wf.setframerate(RATE)
-        wf.writeframes(frames2_temp)
+        wf.setframerate(RATE*4)
+        wf.writeframes(b''.join(output_frames))
         wf.close()
 
 
