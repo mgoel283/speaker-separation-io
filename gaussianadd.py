@@ -1,9 +1,9 @@
-#adds gaussian noise to input segment (mechanics tbd)
+#adds gaussian noise to input segment
 #simulates Yi's program
 import numpy as np
 
 
 def add_gauss(chunk, chunk_size):
     #noise = np.random.normal(0, 1, chunk_size*2)
-    #return str(np.dot(chunk, noise))
-    return np.ones(chunk_size*2, dtype='str')
+    #return chunk + .01*noise
+    return chunk + .01*np.ones(chunk_size*2)

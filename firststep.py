@@ -1,7 +1,7 @@
 #trying to write to thread safe queue
 import pyaudio
 import queue
-#import wave
+import wave
 import numpy
 import matplotlib.pyplot as plt
 import gaussianadd
@@ -12,7 +12,7 @@ WIDTH = 2
 CHANNELS = 2
 RATE = 44100
 #RECORD_SECONDS = 1
-FORMAT = pyaudio.paFloat32
+FORMAT = pyaudio.paInt16
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 
@@ -31,39 +31,47 @@ def main():
     frames = []
     try:
         while True:
-            data = stream.read(CHUNK)
+            data = stream.read(CHUNK) #each data point is a bytes object
             #frames.put(data)
             frames.append(data)
     except KeyboardInterrupt:
-        frames_temp = b''.join(frames)
+        frames_temp = b''.join(frames) #bytes
         # print('halted')
         output_frames = []
         # while not frames.empty():
         #     output_frames.put(gaussianadd.add_gauss(frames.get(), CHUNK))
         for i in range(0, len(frames)):
-            output_frames.append(gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.float32), CHUNK))
-        frames2_temp = ''.join(str(v) for v in output_frames)
+            gauss_chunk = gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.int16), CHUNK)
+            output_frames.append(gauss_chunk)
+        frames2_temp = b''.join(output_frames)
         #Printing waveform for testing
         fig = plt.figure()
         s = fig.add_subplot(211)
-        amp = numpy.fromstring(frames_temp, numpy.float32)
+        amp = numpy.fromstring(frames_temp, numpy.int16) #ndarray
+        amp2 = numpy.fromstring(frames2_temp, numpy.int16)
         s.plot(amp)
         s2 = fig.add_subplot(212)
-        s2.plot(frames2_temp)
+        s2.plot(output_frames)
         plt.show()
 
-
         #WAV conversion code
-        # stream.stop_stream()
-        # stream.close()
-        # p.terminate()
-        #
-        # wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-        # wf.setnchannels(CHANNELS)
-        # wf.setsampwidth(p.get_sample_size(FORMAT))
-        # wf.setframerate(RATE)
-        # wf.writeframes(b''.join(frames))
-        # wf.close()
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+        wf = wave.open('original.wav', 'wb')
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(p.get_sample_size(FORMAT))
+        wf.setframerate(RATE)
+        wf.writeframes(b''.join(frames))
+        wf.close()
+
+        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(p.get_sample_size(FORMAT))
+        wf.setframerate(RATE)
+        wf.writeframes(frames2_temp)
+        wf.close()
 
 
 if __name__ == "__main__":
