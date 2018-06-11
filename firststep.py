@@ -1,4 +1,5 @@
-#trying to write to thread safe queue
+#script to test gaussianadd
+#outputs a plot and two wave files
 import pyaudio
 import queue
 import wave
