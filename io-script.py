@@ -1,3 +1,4 @@
+#NEED TO RELEASE GIL
 import pyaudio
 import queue
 import numpy as np
@@ -6,6 +7,7 @@ import threading
 from threading import Timer
 import struct
 import time
+import multiprocessing
 
 
 CHUNK = 1024
@@ -19,7 +21,7 @@ def get_input():
     global STOP
     while not STOP:
         in_frames.put(stream.read(CHUNK))
-        
+
 
 def feed():
     global STOP
@@ -32,7 +34,7 @@ def play_out():
     while not STOP:
         #samples = out_frames.get()
         #samp_write = struct.pack('%dh' % len(samples), *samples)
-        stream.write(out_frames.get())
+        stream2.write(out_frames.get())
 
 
 def main():
@@ -41,21 +43,25 @@ def main():
     print("* recording")
 
     #thread to write to queue using get_input
-    t_1_write = threading.Thread(target=get_input)
-    t_1_write.daemon = True
-    t_1_write.start()
-
-    #thread to feed packets to gaussianadd and store in new queue
+    # t_1_write = threading.Thread(target=get_input)
+    # t_1_write.daemon = True
+    # t_1_write.start()
+    #
+    # #thread to feed packets to gaussianadd and store in new queue
     # t_2_write = threading.Thread(target=feed)
     # t_2_write.daemon = True
     # t_2_write.start()
-
-    #thread to play output
-    t_3_write = threading.Thread(target=play_out)
-    t_3_write.daemon = True
-    t_3_write.start()
-    # t = Timer(1, play_out) #is choppy
+    #
+    # #thread to play output
+    # # t_3_write = threading.Thread(target=play_out)
+    # # t_3_write.daemon = True
+    # # t_3_write.start()
+    # t = Timer(.5, play_out) #is choppy
     # t.start()
+
+    t_1_write = multiprocessing.Thread(target=get_input)
+    t_1_write.daemon = True
+    t_1_write.start()
 
 
     while True:
@@ -78,6 +84,13 @@ if __name__ == "__main__":
     p = pyaudio.PyAudio()
 
     stream = p.open(format=FORMAT,
+                    channels=CHANNELS,
+                    rate=RATE,
+                    input=True,
+                    output=True,
+                    frames_per_buffer=CHUNK)
+
+    stream2 = p.open(format=FORMAT,
                     channels=CHANNELS,
                     rate=RATE,
                     input=True,
