@@ -15,12 +15,11 @@ RATE = 44100
 FORMAT = pyaudio.paInt16
 
 
-def get_input(): #figure out dropping frames
+def get_input():
     global STOP
     while not STOP:
-        data = stream.read(CHUNK)
-        in_frames.put(data)
-
+        in_frames.put(stream.read(CHUNK))
+        
 
 def feed():
     global STOP
@@ -31,9 +30,9 @@ def feed():
 def play_out():
     global STOP
     while not STOP:
-        samples = out_frames.get()
+        #samples = out_frames.get()
         #samp_write = struct.pack('%dh' % len(samples), *samples)
-        stream2.write(samples)
+        stream.write(out_frames.get())
 
 
 def main():
@@ -47,16 +46,16 @@ def main():
     t_1_write.start()
 
     #thread to feed packets to gaussianadd and store in new queue
-    t_2_write = threading.Thread(target=feed)
-    t_2_write.daemon = True
-    t_2_write.start()
+    # t_2_write = threading.Thread(target=feed)
+    # t_2_write.daemon = True
+    # t_2_write.start()
 
     #thread to play output
-    # t_3_write = threading.Thread(target=play_out)
-    # t_3_write.daemon = True
-    # t_3_write.start()
-    t=Timer(5, play_out) #is choppy
-    t.start()
+    t_3_write = threading.Thread(target=play_out)
+    t_3_write.daemon = True
+    t_3_write.start()
+    # t = Timer(1, play_out) #is choppy
+    # t.start()
 
 
     while True:
@@ -82,12 +81,6 @@ if __name__ == "__main__":
                     channels=CHANNELS,
                     rate=RATE,
                     input=True,
-                    output=True,
-                    frames_per_buffer=CHUNK)
-
-    stream2 = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE*4,
                     output=True,
                     frames_per_buffer=CHUNK)
 
