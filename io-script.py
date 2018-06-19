@@ -1,14 +1,12 @@
-#NEED TO RELEASE GIL
+# NEED TO RELEASE GIL
+import gaussianadd
+import multiprocessing as mp
+import numpy as np
 import pyaudio
 import queue
-import numpy as np
-import gaussianadd
-import threading
-from threading import Timer
 import struct
+import threading
 import time
-import multiprocessing
-
 
 CHUNK = 1024
 WIDTH = 2
@@ -27,13 +25,14 @@ def feed():
     global STOP
     while not STOP:
         out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int16), CHUNK))
+        #out_frames.put(in_frames.get())
 
 
 def play_out():
     global STOP
     while not STOP:
-        #samples = out_frames.get()
-        #samp_write = struct.pack('%dh' % len(samples), *samples)
+        # samples = out_frames.get()
+        # samp_write = struct.pack('%dh' % len(samples), *samples)
         stream2.write(out_frames.get())
 
 
@@ -42,27 +41,35 @@ def main():
 
     print("* recording")
 
-    #thread to write to queue using get_input
-    # t_1_write = threading.Thread(target=get_input)
-    # t_1_write.daemon = True
-    # t_1_write.start()
-    #
-    # #thread to feed packets to gaussianadd and store in new queue
-    # t_2_write = threading.Thread(target=feed)
-    # t_2_write.daemon = True
-    # t_2_write.start()
-    #
-    # #thread to play output
-    # # t_3_write = threading.Thread(target=play_out)
-    # # t_3_write.daemon = True
-    # # t_3_write.start()
-    # t = Timer(.5, play_out) #is choppy
-    # t.start()
-
-    t_1_write = multiprocessing.Thread(target=get_input)
+    # thread to write to queue using get_input
+    t_1_write = threading.Thread(target=get_input)
     t_1_write.daemon = True
     t_1_write.start()
 
+    #thread to feed packets to gaussianadd and store in new queue
+    t_2_write = threading.Thread(target=feed)
+    t_2_write.daemon = True
+    t_2_write.start()
+
+    #thread to play output
+    t_3_write = threading.Thread(target=play_out)
+    t_3_write.daemon = True
+    t_3_write.start()
+    # t = Timer(.5, play_out) #is choppy
+    # t.start()
+
+    #multiprocessing
+    # t_1_write = mp.Process(target=get_input, args=())
+    # t_1_write.daemon = True
+    # t_1_write.start()
+    #
+    # t_2_write = mp.Process(target=feed, args=())
+    # t_2_write.daemon = True
+    # t_2_write.start()
+    #
+    # t_3_write = mp.Process(target=play_out, args=())
+    # t_3_write.daemon = True
+    # t_3_write.start()
 
     while True:
         try:
@@ -74,11 +81,10 @@ def main():
 
 
 if __name__ == "__main__":
-
     STOP = False
-    #collection queue
+    # collection queue
     in_frames = queue.Queue()
-    #output queue
+    # output queue
     out_frames = queue.Queue()
 
     p = pyaudio.PyAudio()
@@ -91,10 +97,10 @@ if __name__ == "__main__":
                     frames_per_buffer=CHUNK)
 
     stream2 = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    output=True,
-                    frames_per_buffer=CHUNK)
+                     channels=CHANNELS,
+                     rate=int(RATE/2),
+                     input=True,
+                     output=True,
+                     frames_per_buffer=CHUNK)
 
     main()

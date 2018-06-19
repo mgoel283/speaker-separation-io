@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import gaussianadd
 
 
-CHUNK = 1024
+CHUNK = 800
 WIDTH = 2
 CHANNELS = 2
 RATE = 44100
