@@ -1,3 +1,4 @@
+#Uses multiprocessing
 import gaussianadd
 import multiprocessing as mp
 import numpy as np
@@ -14,7 +15,6 @@ FORMAT = pyaudio.paInt16
 
 
 def get_input(in_frames):
-    # global STOP
     p = pyaudio.PyAudio()
     stream = p.open(format=FORMAT,
                     channels=CHANNELS,
@@ -27,14 +27,12 @@ def get_input(in_frames):
 
 
 def feed(in_frames, out_frames):
-    # global STOP
     while True:
         out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int16), CHUNK))
         #out_frames.put(in_frames.get())
 
 
 def play_out(out_frames):
-    # global STOP
     p = pyaudio.PyAudio()
     stream2 = p.open(format=FORMAT,
                      channels=CHANNELS,
@@ -50,7 +48,6 @@ def play_out(out_frames):
 
 if __name__ == "__main__":
 
-    STOP = mp.Value("b", False)
     # collection queue
     in_frames = mp.Queue()
     # output queue

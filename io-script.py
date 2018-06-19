@@ -1,4 +1,4 @@
-# NEED TO RELEASE GIL
+# Uses multithreading
 import gaussianadd
 import multiprocessing as mp
 import numpy as np
@@ -7,6 +7,7 @@ import queue
 import struct
 import threading
 import time
+
 
 CHUNK = 1024
 WIDTH = 2
@@ -25,7 +26,7 @@ def feed():
     global STOP
     while not STOP:
         out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int16), CHUNK))
-        #out_frames.put(in_frames.get())
+        # out_frames.put(in_frames.get())
 
 
 def play_out():
@@ -46,30 +47,15 @@ def main():
     t_1_write.daemon = True
     t_1_write.start()
 
-    #thread to feed packets to gaussianadd and store in new queue
+    # thread to feed packets to gaussianadd and store in new queue
     t_2_write = threading.Thread(target=feed)
     t_2_write.daemon = True
     t_2_write.start()
 
-    #thread to play output
+    # thread to play output
     t_3_write = threading.Thread(target=play_out)
     t_3_write.daemon = True
     t_3_write.start()
-    # t = Timer(.5, play_out) #is choppy
-    # t.start()
-
-    #multiprocessing
-    # t_1_write = mp.Process(target=get_input, args=())
-    # t_1_write.daemon = True
-    # t_1_write.start()
-    #
-    # t_2_write = mp.Process(target=feed, args=())
-    # t_2_write.daemon = True
-    # t_2_write.start()
-    #
-    # t_3_write = mp.Process(target=play_out, args=())
-    # t_3_write.daemon = True
-    # t_3_write.start()
 
     while True:
         try:
