@@ -6,8 +6,6 @@ import wave
 import numpy
 import matplotlib.pyplot as plt
 import gaussianadd
-import pick
-
 
 CHUNK = 800
 WIDTH = 2

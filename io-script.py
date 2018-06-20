@@ -16,6 +16,31 @@ RATE = 44100
 FORMAT = pyaudio.paInt16
 
 
+class RingBuffer: #want to grab next frame and preceeding P s data
+    def __init__(self, max_size):
+        self.back = 0
+        self.front = #P + frame elements ahead
+        self.max = max_size
+        self.data = queue.Queue(maxsize=max_size)
+
+    class __Full:
+        def append(self, x):
+            self.data[self.front] = x
+            self.front = (self.front + 1) % self.max
+            self.back = (self.back + 1) % self.max
+
+        # def get(self):#fix
+        #     return self.data[self.cur:] + self.data[:self.cur]
+
+    def append(self, x):
+        self.data.put(self.front)
+        if self.data.full():
+            self.__class__ = self.__Full
+
+    # def get(self):#fix
+    #     return self.data
+
+
 def get_input():
     global STOP
     while not STOP:
