@@ -15,7 +15,9 @@ CHANNELS = 2
 RATE = 44100
 FORMAT = pyaudio.paInt16
 
-
+#we want two ring buffers, 1 for frames, 1 for history
+#one pointer writes, and second one manages the get
+#when the two differ by some distance in the frame buffer, we reset the get pointer to the writing pointer
 class RingBuffer: #want to grab next frame and preceeding P s data
     def __init__(self, max_size):
         self.back = 0
