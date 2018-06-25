@@ -10,39 +10,13 @@ import time
 
 
 CHUNK = 1024
-WIDTH = 2
 CHANNELS = 2
 RATE = 44100
 FORMAT = pyaudio.paInt16
 
-#we want two ring buffers, 1 for frames, 1 for history
+#we want two ring buffers, 1 for frames, 1 for history OR 1 large list
 #one pointer writes, and second one manages the get
 #when the two differ by some distance in the frame buffer, we reset the get pointer to the writing pointer
-class RingBuffer: #want to grab next frame and preceeding P s data
-    def __init__(self, max_size):
-        self.back = 0
-        self.front = #P + frame elements ahead
-        self.max = max_size
-        self.data = queue.Queue(maxsize=max_size)
-
-    class __Full:
-        def append(self, x):
-            self.data[self.front] = x
-            self.front = (self.front + 1) % self.max
-            self.back = (self.back + 1) % self.max
-
-        # def get(self):#fix
-        #     return self.data[self.cur:] + self.data[:self.cur]
-
-    def append(self, x):
-        self.data.put(self.front)
-        if self.data.full():
-            self.__class__ = self.__Full
-
-    # def get(self):#fix
-    #     return self.data
-
-
 def get_input():
     global STOP
     while not STOP:
@@ -52,7 +26,7 @@ def get_input():
 def feed():
     global STOP
     while not STOP:
-        out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int16), CHUNK))
+        out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int8), CHUNK))
         # out_frames.put(in_frames.get())
 
 
@@ -111,7 +85,7 @@ if __name__ == "__main__":
 
     stream2 = p.open(format=FORMAT,
                      channels=CHANNELS,
-                     rate=int(RATE/2),
+                     rate=RATE,
                      input=True,
                      output=True,
                      frames_per_buffer=CHUNK)
