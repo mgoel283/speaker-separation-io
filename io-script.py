@@ -1,22 +1,62 @@
 # Uses multithreading
 import gaussianadd
-import multiprocessing as mp
+#import scikits.audiolab as audiolab
 import numpy as np
 import pyaudio
 import queue
-import struct
 import threading
 import time
-
 
 CHUNK = 1024
 CHANNELS = 2
 RATE = 44100
 FORMAT = pyaudio.paInt16
 
-#we want two ring buffers, 1 for frames, 1 for history OR 1 large list
-#one pointer writes, and second one manages the get
-#when the two differ by some distance in the frame buffer, we reset the get pointer to the writing pointer
+
+# when the two differ by some distance in the frame buffer, we reset the get pointer to the writing pointer
+# and essentially drop the preceding frames
+class RingBuffer:
+    def __init__(self, size_max, out_size):
+        self.write_head = 0  # index of pointer to write
+        self.get_front = out_size  # index of front of frame data
+        self.get_back = 0  # index of back of frame data
+        self.max = size_max
+        self.data = []
+
+    class __Full:
+        def put(self, x):
+            self.data[self.write_head] = x
+            self.write_head = (self.write_head + 1) % self.max
+
+        def get(self):
+            if self.get_front > self.get_back:
+                history = b''.join(self.data[self.get_back: self.get_front])
+                return self.data[self.get_front], history
+            else:
+                history = b''.join(self.data[self.get_back:] + self.data[:self.get_front])
+                return self.data[self.get_front], history
+            self.get_front = (self.get_front + 1) % self.max
+            self.get_back = (self.get_back + 1) % self.max
+
+    def put(self, x):
+        self.data.append(x)
+        if len(self.data) == self.max:
+            self.__class__ = self.__Full
+
+    def get(self):
+        try:
+            if self.get_front > self.get_back:
+                history = b''.join(self.data[self.get_back: self.get_front])
+                return self.data[self.get_front], history
+            else:
+                history = b''.join(self.data[self.get_back:] + self.data[:self.get_front])
+                return self.data[self.get_front], history
+            self.get_front = (self.get_front + 1) % self.max
+            self.get_back = (self.get_back + 1) % self.max
+        except Exception as e:
+            return b'\x00\x00\x00\x00\xff\xff\x00\x00', b'\x00\x00\x00\x00\xff\xff\x00\x00'
+
+
 def get_input():
     global STOP
     while not STOP:
@@ -70,6 +110,7 @@ def main():
 if __name__ == "__main__":
     STOP = False
     # collection queue
+    #in_frames = RingBuffer(500, 2)
     in_frames = queue.Queue()
     # output queue
     out_frames = queue.Queue()

@@ -39,12 +39,13 @@ def main():
         # while not frames.empty():
         #     output_frames.put(gaussianadd.add_gauss(frames.get(), CHUNK))
         for i in range(0, len(frames)):
-            gauss_chunk = gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.int16), CHUNK)
+            gauss_chunk = gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.int8), CHUNK)
             output_frames.append(gauss_chunk)
+        print(frames[0])
         #Printing waveform for testing
         fig = plt.figure()
         s = fig.add_subplot(211)
-        amp = numpy.fromstring(frames_temp, numpy.int16) #ndarray
+        amp = numpy.fromstring(frames_temp, numpy.int8) #ndarray
         s.plot(amp)
         s2 = fig.add_subplot(212)
         s2.plot(output_frames)
