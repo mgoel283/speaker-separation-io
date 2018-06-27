@@ -75,6 +75,9 @@ class RingBuffer:
         return self.data[self.get_front]
 
 
+'''need to work on ring buffer'''
+
+
 def get_input():
     global STOP
     while not STOP:
@@ -83,11 +86,11 @@ def get_input():
 
 def feed():
     global STOP
-    count = 0
+    exp_arr = np.linspace(1, CHUNK, num=CHUNK)
+    h = np.matmul(np.random.random(size=CHUNK), np.exp(-.1 * exp_arr))
     while not STOP:
         #temp = in_frames.get()
-        #print(temp)
-        out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int8), CHUNK))
+        out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int8), CHUNK, h))
         #out_frames.put(in_frames.get())
 
 

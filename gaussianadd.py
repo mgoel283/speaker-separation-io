@@ -3,6 +3,7 @@
 import numpy as np
 
 
+
 def add_gauss(chunk, chunk_size):
     try:
         noise = np.random.normal(0, 1, chunk_size*4)
@@ -13,3 +14,7 @@ def add_gauss(chunk, chunk_size):
         return chunk
     except Exception as e:
         print('Not yet')
+
+
+def add_reverb(chunk, chunk_size, h):
+    return np.convolve(chunk, h)
