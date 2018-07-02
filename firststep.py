@@ -3,14 +3,14 @@
 import pyaudio
 import queue
 import wave
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 import gaussianadd
 
-CHUNK = 800
+CHUNK = 1024
 WIDTH = 2
 CHANNELS = 2
-RATE = 44100
+RATE = 1600
 FORMAT = pyaudio.paInt16
 
 
@@ -36,16 +36,17 @@ def main():
         frames_temp = b''.join(frames) #bytes
         # print('halted')
         output_frames = []
+        exp_new = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
+        h = np.random.random(size=RATE * 2) * exp_new
         # while not frames.empty():
         #     output_frames.put(gaussianadd.add_gauss(frames.get(), CHUNK))
         for i in range(0, len(frames)):
-            gauss_chunk = gaussianadd.add_gauss(numpy.fromstring(frames[i], numpy.int8), CHUNK)
+            gauss_chunk = gaussianadd.add_reverb(np.fromstring(frames[i], np.int8), h)
             output_frames.append(gauss_chunk)
-        print(frames[0])
         #Printing waveform for testing
         fig = plt.figure()
         s = fig.add_subplot(211)
-        amp = numpy.fromstring(frames_temp, numpy.int8) #ndarray
+        amp = np.fromstring(frames_temp, np.int8) #ndarray
         s.plot(amp)
         s2 = fig.add_subplot(212)
         s2.plot(output_frames)

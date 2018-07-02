@@ -1,7 +1,7 @@
 # adds gaussian noise to input segment
 # simulates Yi's program
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 
 def add_gauss(chunk, chunk_size):
@@ -16,5 +16,8 @@ def add_gauss(chunk, chunk_size):
         print('Not yet')
 
 
-def add_reverb(chunk, chunk_size, h):
-    return np.convolve(chunk, h)
+def add_reverb(chunk, h):
+    return chunk
+    #return np.convolve(chunk, h)
+
+

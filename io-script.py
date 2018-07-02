@@ -5,10 +5,11 @@ import pyaudio
 import queue
 import threading
 import time
+import matplotlib.pyplot as plt
 
-CHUNK = 8
+CHUNK = 512
 CHANNELS = 2
-RATE = 44100
+RATE = 16000
 FORMAT = pyaudio.paInt16
 fill_val = b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
@@ -84,13 +85,11 @@ def get_input():
         in_frames.put(stream.read(CHUNK))
 
 
-def feed():
+def feed(h):
     global STOP
-    exp_arr = np.linspace(1, CHUNK, num=CHUNK)
-    h = np.matmul(np.random.random(size=CHUNK), np.exp(-.1 * exp_arr))
     while not STOP:
         #temp = in_frames.get()
-        out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int8), CHUNK, h))
+        out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int8), h))
         #out_frames.put(in_frames.get())
 
 
@@ -105,6 +104,10 @@ def play_out():
 
 def main():
     global STOP
+    exp_new = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
+    h = np.random.random(size=RATE * 2) * exp_new
+    # plt.plot(h)
+    # plt.show()
 
     print("* recording")
 
@@ -114,7 +117,7 @@ def main():
     t_1_write.start()
 
     # thread to feed packets to gaussianadd and store in new queue
-    t_2_write = threading.Thread(target=feed)
+    t_2_write = threading.Thread(target=feed, args=[h])
     t_2_write.daemon = True
     t_2_write.start()
 
