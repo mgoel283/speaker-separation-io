@@ -106,8 +106,8 @@ def main():
     global STOP
     exp_new = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
     h = np.random.random(size=RATE * 2) * exp_new
-    # plt.plot(h)
-    # plt.show()
+    plt.plot(h)
+    plt.show()
 
     print("* recording")
 
