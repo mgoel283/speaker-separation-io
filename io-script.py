@@ -7,8 +7,8 @@ import threading
 import time
 import matplotlib.pyplot as plt
 
-CHUNK = 512
-CHANNELS = 2
+CHUNK = 64
+CHANNELS = 1
 RATE = 16000
 FORMAT = pyaudio.paInt16
 fill_val = b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
@@ -82,7 +82,7 @@ class RingBuffer:
 def get_input():
     global STOP
     while not STOP:
-        in_frames.put(stream.read(CHUNK))
+        in_frames.put(stream.read(CHUNK, exception_on_overflow=False))
 
 
 def feed(h):
@@ -104,8 +104,8 @@ def play_out():
 
 def main():
     global STOP
-    exp_new = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
-    h = np.random.random(size=RATE * 2) * exp_new
+    exp_arr = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
+    h = np.random.random(size=RATE * 2) * exp_arr
     plt.plot(h)
     plt.show()
 

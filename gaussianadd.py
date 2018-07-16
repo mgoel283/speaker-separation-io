@@ -16,7 +16,9 @@ def add_gauss(chunk, chunk_size):
         print('Not yet')
 
 
-def add_reverb(chunk, h):
-    #try_this = np.fft.fft(chunk)
-    return chunk
+def add_reverb(chunk, h_fft):
+    # chunk_fft = np.fft.fft(chunk)
+    # #result = chunk_fft * h_fft
+    # return np.fft.ifft(chunk_fft)
     #return np.convolve(chunk, h)
+    return chunk

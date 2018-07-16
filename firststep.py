@@ -10,7 +10,7 @@ import gaussianadd
 CHUNK = 1024
 WIDTH = 2
 CHANNELS = 2
-RATE = 1600
+RATE = 16000
 FORMAT = pyaudio.paInt16
 
 
@@ -34,15 +34,13 @@ def main():
             frames.append(data)
     except KeyboardInterrupt:
         frames_temp = b''.join(frames) #bytes
-        # print('halted')
         output_frames = []
         exp_new = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
         h = np.random.random(size=RATE * 2) * exp_new
-        # while not frames.empty():
-        #     output_frames.put(gaussianadd.add_gauss(frames.get(), CHUNK))
         for i in range(0, len(frames)):
             gauss_chunk = gaussianadd.add_reverb(np.fromstring(frames[i], np.int8), h)
             output_frames.append(gauss_chunk)
+
         #Printing waveform for testing
         fig = plt.figure()
         s = fig.add_subplot(211)
@@ -67,7 +65,7 @@ def main():
         wf = wave.open('output.wav', 'wb')
         wf.setnchannels(CHANNELS)
         wf.setsampwidth(p.get_sample_size(FORMAT))
-        wf.setframerate(RATE*4)
+        wf.setframerate(RATE)
         wf.writeframes(b''.join(output_frames))
         wf.close()
 
