@@ -10,7 +10,7 @@ import time
 CHUNK = 1024
 WIDTH = 2
 CHANNELS = 2
-RATE = 44100
+RATE = 16000
 FORMAT = pyaudio.paInt16
 
 
@@ -28,7 +28,7 @@ def get_input(in_frames):
 
 def feed(in_frames, out_frames):
     while True:
-        out_frames.put(gaussianadd.add_gauss(np.fromstring(in_frames.get(), np.int16), CHUNK))
+        out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int16)))
         #out_frames.put(in_frames.get())
 
 

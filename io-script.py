@@ -4,14 +4,16 @@ import numpy as np
 import pyaudio
 import queue
 import threading
+import multiprocessing as mp
 import time
 import matplotlib.pyplot as plt
+import ringbuffer
 
-CHUNK = 64
+CHUNK = 1
 CHANNELS = 1
 RATE = 16000
 FORMAT = pyaudio.paInt16
-fill_val = b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+#fill_val = b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
 
 # when the two differ by some distance in the frame buffer, we reset the get pointer to the writing pointer
@@ -60,24 +62,6 @@ fill_val = b'\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x01\x00\x0
 #         except Exception as e:
 #             return b'\x00\x00\x00\x00\xff\xff\x00\x00'
 
-class RingBuffer:
-    def __init__(self, size_max):
-        self.write_head = 10  # index of pointer to write
-        self.get_front = -1  # index of front of frame data
-        self.max = size_max
-        self.data = np.full(size_max, fill_val, dtype=bytearray)
-
-    def put(self, x):
-        self.data[self.write_head] = x
-        self.write_head = (self.write_head + 1) % self.max
-
-    def get(self):
-        self.get_front = (self.get_front + 1) % self.max
-        return self.data[self.get_front]
-
-
-'''need to work on ring buffer'''
-
 
 def get_input():
     global STOP
@@ -85,29 +69,25 @@ def get_input():
         in_frames.put(stream.read(CHUNK, exception_on_overflow=False))
 
 
-def feed(h):
+def feed():
     global STOP
     while not STOP:
         #temp = in_frames.get()
-        out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int8), h))
-        #out_frames.put(in_frames.get())
+        #out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int8)))
+        temp = in_frames.get()
+        print(temp)
+        out_frames.put(temp)
 
 
 def play_out():
     global STOP
     while not STOP:
         # samples = out_frames.get()
-        # samp_write = struct.pack('%dh' % len(samples), *samples)
         stream2.write(out_frames.get())
-        #print(in_frames.get())
 
 
 def main():
     global STOP
-    exp_arr = np.exp(-3 * np.linspace(1, RATE * 2, num=RATE * 2) / RATE)
-    h = np.random.random(size=RATE * 2) * exp_arr
-    plt.plot(h)
-    plt.show()
 
     print("* recording")
 
@@ -117,7 +97,7 @@ def main():
     t_1_write.start()
 
     # thread to feed packets to gaussianadd and store in new queue
-    t_2_write = threading.Thread(target=feed, args=[h])
+    t_2_write = threading.Thread(target=feed)
     t_2_write.daemon = True
     t_2_write.start()
 
@@ -137,9 +117,8 @@ def main():
 
 if __name__ == "__main__":
     STOP = False
-    # collection queue
-    #in_frames = RingBuffer(1000)
-    in_frames = queue.Queue()
+    in_frames = ringbuffer.RingBuffer(8192, dtype=bytes)
+    #in_frames = queue.Queue()
     # output queue
     out_frames = queue.Queue()
 

@@ -1,6 +1,6 @@
 output.wav
 original.wav
-RingBuffer.py
+ringbuffer.py
 ori.wav
 out.wav
 reverb-nrt.py
