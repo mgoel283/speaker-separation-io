@@ -19,7 +19,6 @@ class RingBuffer:
     #     return self.data[self.get_front]
 
     def __init__(self, max_size, dtype=np.float32):
-        #self._npa = np.full(max_size * 2, 0, dtype=dtype)
         self._npa = mp.RawArray(ctypes.c_char_p, max_size * 2)
         self.max_size = max_size
         self._index = 0
@@ -32,6 +31,8 @@ class RingBuffer:
         self._index += 1
 
     def get(self):
+        if self.read_head >= self._index:
+            self.read_head = self.read_head - 1
         self.read_head = (self.read_head + 1) % self.max_size
         return self._npa[self.read_head]
 
