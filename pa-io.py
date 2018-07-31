@@ -6,7 +6,6 @@ import threading
 import time
 import ctypes
 import sys
-import gaussianadd
 
 CHUNK = 64
 CHANNELS = 1
