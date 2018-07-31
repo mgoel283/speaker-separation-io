@@ -9,7 +9,7 @@ import time
 import matplotlib.pyplot as plt
 import ringbuffer
 
-CHUNK = 1
+CHUNK = 64
 CHANNELS = 1
 RATE = 16000
 FORMAT = pyaudio.paInt16
@@ -74,16 +74,20 @@ def feed():
     while not STOP:
         #temp = in_frames.get()
         #out_frames.put(gaussianadd.add_reverb(np.fromstring(in_frames.get(), np.int8)))
-        temp = in_frames.get()
-        print(temp)
-        out_frames.put(temp)
+        # temp = in_frames.get()
+        # print(temp)
+        try:
+            out_frames.put(in_frames.get())
+        except IndexError:
+            print('yeet')
 
 
 def play_out():
     global STOP
     while not STOP:
         # samples = out_frames.get()
-        stream2.write(out_frames.get())
+        temp = out_frames.get()
+        stream2.write(temp)
 
 
 def main():
@@ -117,7 +121,7 @@ def main():
 
 if __name__ == "__main__":
     STOP = False
-    in_frames = ringbuffer.RingBuffer(8192, dtype=bytes)
+    in_frames = ringbuffer.RingBuffer(8192)
     #in_frames = queue.Queue()
     # output queue
     out_frames = queue.Queue()
