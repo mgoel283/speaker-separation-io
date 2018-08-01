@@ -19,7 +19,7 @@ def get_input():
     with ps.InputStream(samplerate=RATE, channels=CHANNELS) as stream_in:
         while not STOP:
             for chunk in stream_in.chunks(chunksize=CHUNK):
-                #print(type(chunk[1]))
+                # print(type(chunk[1]))
                 in_frames.put(chunk)
 
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
     STOP = False
 
     in_frames = queue.Queue()
-    #out_frames = ps.RingBuffer(CHUNK*2, size=8192*4)
+    # out_frames = ps.RingBuffer(CHUNK*2, size=8192*4)
     out_frames = queue.Queue()
 
     p = pyaudio.PyAudio()

@@ -1,30 +1,29 @@
 # Uses multithreading
 import numpy as np
 import pyaudio
+from pastream import RingBuffer
 import queue
 import threading
 import time
-from pastream import RingBuffer
 
 CHUNK = 64
 CHANNELS = 1
 RATE = 16000
 FORMAT = pyaudio.paInt16
+HIST_SECS = 2
 
 
 def get_input():
     global STOP
     while not STOP:
-        in_frames.write(stream.read(CHUNK, exception_on_overflow=False))
+        temp = stream_in.read(CHUNK, exception_on_overflow=False)
+        in_frames.write(temp)
 
 
-def feed():
+def feed(): #do history stuff here
     global STOP
     while not STOP:
-        try:
-            out_frames.put(in_frames.read())
-        except IndexError:
-            print('yeet')
+        out_frames.put(hist_read()[0])
 
 
 def play_out():
@@ -32,7 +31,17 @@ def play_out():
     while not STOP:
         # samples = out_frames.get()
         temp = out_frames.get()
-        stream2.write(temp)
+        stream_out.write(temp)
+
+
+def hist_read():
+    back_amount = int(HIST_SECS*RATE/CHUNK)
+    in_frames.advance_read_index(-back_amount)
+
+    history_data = in_frames.read(back_amount)
+    print(history_data)
+
+    return in_frames.read(), history_data
 
 
 def main():
@@ -45,7 +54,7 @@ def main():
     t_1_write.daemon = True
     t_1_write.start()
 
-    # thread to feed packets to gaussianadd and store in new queue
+    # thread to feed packets to API and store in new queue
     t_2_write = threading.Thread(target=feed)
     t_2_write.daemon = True
     t_2_write.start()
@@ -66,25 +75,21 @@ def main():
 
 if __name__ == "__main__":
     STOP = False
-    in_frames = RingBuffer(CHUNK*2, size=8192*4)
-    #in_frames = queue.Queue()
-    # output queue
+    in_frames = RingBuffer(CHUNK * 2, size=32768)
     out_frames = queue.Queue()
 
     p = pyaudio.PyAudio()
 
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    output=True,
-                    frames_per_buffer=CHUNK)
+    stream_in = p.open(format=FORMAT,
+                       channels=CHANNELS,
+                       rate=RATE,
+                       input=True,
+                       frames_per_buffer=CHUNK)
 
-    stream2 = p.open(format=FORMAT,
-                     channels=CHANNELS,
-                     rate=RATE,
-                     input=True,
-                     output=True,
-                     frames_per_buffer=CHUNK)
+    stream_out = p.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        output=True,
+                        frames_per_buffer=CHUNK)
 
     main()
